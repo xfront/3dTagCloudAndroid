@@ -29,14 +29,11 @@ import android.graphics.Point;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.IntDef;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.view.*;
+
+import androidx.annotation.IntDef;
 
 import com.moxun.tagcloudlib.R;
 
