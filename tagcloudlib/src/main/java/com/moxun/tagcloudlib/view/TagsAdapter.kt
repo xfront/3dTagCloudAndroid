@@ -1,8 +1,8 @@
-package com.moxun.tagcloudlib.view;
+package com.moxun.tagcloudlib.view
 
-import android.content.Context;
-import android.view.View;
-import android.view.ViewGroup;
+import android.content.Context
+import android.view.View
+import android.view.ViewGroup
 
 /**
  * Copyright © 2016 moxun
@@ -25,25 +25,24 @@ import android.view.ViewGroup;
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
+abstract class TagsAdapter {
+    private var onDataSetChangeListener: OnDataSetChangeListener? = null
 
-public abstract class TagsAdapter {
-    private OnDataSetChangeListener onDataSetChangeListener;
+    abstract val count: Int
+    abstract fun getView(context: Context, position: Int, parent: ViewGroup): View?
+    abstract fun getItem(position: Int): Any?
+    abstract fun getPopularity(position: Int): Int
+    abstract fun onThemeColorChanged(view: View, themeColor: Int, alpha: Float)
 
-    public abstract int getCount();
-    public abstract View getView(Context context, int position, ViewGroup parent);
-    public abstract Object getItem(int position);
-    public abstract int getPopularity(int position);
-    public abstract void onThemeColorChanged(View view, int themeColor, float alpha);
-
-    public final void notifyDataSetChanged() {
-        onDataSetChangeListener.onChange();
+    fun notifyDataSetChanged() {
+        onDataSetChangeListener?.onChange()
     }
 
-    protected interface OnDataSetChangeListener{
-        void onChange();
+    fun interface OnDataSetChangeListener {
+        fun onChange()
     }
 
-    protected void setOnDataSetChangeListener(OnDataSetChangeListener listener) {
-        onDataSetChangeListener = listener;
+    fun setOnDataSetChangeListener(listener: OnDataSetChangeListener?) {
+        onDataSetChangeListener = listener
     }
 }

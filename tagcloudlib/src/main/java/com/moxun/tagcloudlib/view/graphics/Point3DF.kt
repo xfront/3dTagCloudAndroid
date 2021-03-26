@@ -1,64 +1,61 @@
+package com.moxun.tagcloudlib.view.graphics
 
-package com.moxun.tagcloudlib.view.graphics;
+class Point3DF {
+    var x = 0f
+    var y = 0f
+    var z = 0f
 
-public class Point3DF {
-  public float x;
-  public float y;
-  public float z;
+    constructor() {}
+    constructor(x: Float, y: Float, z: Float) {
+        this.x = x
+        this.y = y
+        this.z = z
+    }
 
-  public Point3DF() {}
+    constructor(p: Point3DF) {
+        x = p.x
+        y = p.y
+        z = p.z
+    }
 
-  public Point3DF(float x, float y, float z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-  }
+    /**
+     * Set the point's x and y coordinates
+     */
+    operator fun set(x: Float, y: Float, z: Float) {
+        this.x = x
+        this.y = y
+        this.z = z
+    }
 
-  public Point3DF(Point3DF p) {
-    this.x = p.x;
-    this.y = p.y;
-    this.z = p.z;
-  }
+    /**
+     * Set the point's x and y coordinates to the coordinates of p
+     */
+    fun set(p: Point3DF) {
+        x = p.x
+        y = p.y
+        z = p.z
+    }
 
-  /**
-   * Set the point's x and y coordinates
-   */
-  public final void set(float x, float y, float z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-  }
+    fun negate() {
+        x = -x
+        y = -y
+        z = -z
+    }
 
-  /**
-   * Set the point's x and y coordinates to the coordinates of p
-   */
-  public final void set(Point3DF p) {
-    this.x = p.x;
-    this.y = p.y;
-    this.z = p.z;
-  }
+    fun offset(dx: Float, dy: Float, dz: Float) {
+        x += dx
+        y += dy
+        z += dz
+    }
 
-  public final void negate() {
-    x = -x;
-    y = -y;
-    z = -z;
-  }
+    /**
+     * Returns true if the point's coordinates equal (x,y)
+     */
+    fun equals(x: Float, y: Float, z: Float): Boolean {
+        return this.x == x && this.y == y && this.z == z
+    }
 
-  public final void offset(float dx, float dy, float dz) {
-    x += dx;
-    y += dy;
-    z += dz;
-  }
-
-  /**
-   * Returns true if the point's coordinates equal (x,y)
-   */
-  public final boolean equals(float x, float y, float z) {
-    return this.x == x && this.y == y && this.z == z;
-  }
-
-  @Override
-  public String toString() {
-    return "Point3DF(" + x + ", " + y + ", " + z + ")";
-  }
+    override fun toString(): String {
+        return "Point3DF($x, $y, $z)"
+    }
 }

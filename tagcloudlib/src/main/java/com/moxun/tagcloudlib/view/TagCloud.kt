@@ -1,4 +1,8 @@
-package com.moxun.tagcloudlib.view;
+package com.moxun.tagcloudlib.view
+
+import java.lang.Math.random
+import java.util.*
+import kotlin.math.*
 
 /**
  * Copyright © 2016 moxun
@@ -21,230 +25,184 @@ package com.moxun.tagcloudlib.view;
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
+class TagCloud @JvmOverloads constructor(
+    val tagList: MutableList<Tag>,
+    var radius: Int = DEFAULT_RADIUS,
+    var tagColorLight: FloatArray = DEFAULT_COLOR_DARK,
+    var tagColorDark: FloatArray = DEFAULT_COLOR_LIGHT
+) {
+    private var mSinX = 0f
+    private var mCosX = 0f
+    private var mSinY = 0f
+    private var mCosY = 0f
+    private var mSinZ = 0f
+    private var mCosZ = 0f
+    private val mInertiaZ = 0f
+    private var mInertiaX = 0f
+    private var mInertiaY = 0f
+    private var mMinPopularity = 0
+    private var mMaxPopularity = 0
+    private var mRebuildOnUpdate = true
+    private var maxDelta = 0f
+    private var minDelta = 0f
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-public class TagCloud {
-
-    private List<Tag> mTagList;
-    private int mRadius;
-    private static final int DEFAULT_RADIUS = 3;
-    private static final float[] DEFAULT_COLOR_DARK = {0.886f, 0.725f, 0.188f, 1f};
-    private static final float[] DEFAULT_COLOR_LIGHT = {0.3f, 0.3f, 0.3f, 1f};
-    private float[] mLightColor;
-    private float[] mDarkColor;
-    private float mSinX, mCosX, mSinY, mCosY, mSinZ, mCosZ;
-    private float mInertiaZ = 0;
-    private float mInertiaX = 0;
-    private float mInertiaY = 0;
-
-    private int mMinPopularity, mMaxPopularity;
-    private boolean mRebuildOnUpdate = true;
-
-    public TagCloud() {
-        this(DEFAULT_RADIUS);
+    @JvmOverloads
+    constructor(radius: Int = DEFAULT_RADIUS) : this(ArrayList<Tag>(), radius) {
     }
 
-    public TagCloud(int radius) {
-        this(new ArrayList<Tag>(), radius);
+    fun create(rebuild: Boolean) {
+        mRebuildOnUpdate = rebuild
+        positionAll(mRebuildOnUpdate)
+        calculatePopularity()
+        recalculateAngle()
+        updateAll()
     }
 
-    public TagCloud(List<Tag> tags) {
-        this(tags, DEFAULT_RADIUS);
+    fun clear() {
+        tagList.clear()
     }
 
-    public TagCloud(List<Tag> tags, int radius) {
-        this(tags, radius, DEFAULT_COLOR_DARK, DEFAULT_COLOR_LIGHT);
+    operator fun get(position: Int): Tag {
+        return tagList[position]
     }
 
-    public TagCloud(List<Tag> tags, int radius, float[] tagColor1, float[] tagColor2) {
-        this.mTagList = tags;
-        this.mRadius = radius;
-        this.mLightColor = tagColor1;
-        this.mDarkColor = tagColor2;
+    fun reset() {
+        create(mRebuildOnUpdate)
     }
 
-    public void create(boolean rebuild) {
-        this.mRebuildOnUpdate = rebuild;
-        positionAll(mRebuildOnUpdate);
-        calculatePopularity();
-        recalculateAngle();
-        updateAll();
-    }
-
-    public void clear() {
-        mTagList.clear();
-    }
-
-    public List<Tag> getTagList() {
-        return mTagList;
-    }
-
-    public Tag get(int position) {
-        return mTagList.get(position);
-    }
-
-    public void reset() {
-        create(mRebuildOnUpdate);
-    }
-
-    public void update() {
-        if (Math.abs(mInertiaX) > 0.1f || Math.abs(mInertiaY) > 0.1f) {
-            recalculateAngle();
-            updateAll();
+    fun update() {
+        if (abs(mInertiaX) > 0.1f || abs(mInertiaY) > 0.1f) {
+            recalculateAngle()
+            updateAll()
         }
     }
 
-    private void initTag(Tag tag) {
-        float percentage = getPercentage(tag);
-        float[] argb = getColorFromGradient(percentage);
-        tag.setColorComponent(argb);
+    private fun initTag(tag: Tag) {
+        val percentage = getPercentage(tag)
+        val argb = getColorFromGradient(percentage)
+        tag.setColorComponent(argb)
     }
 
-    private float getPercentage(Tag tag) {
-        int p = tag.getPopularity();
-        return (mMinPopularity == mMaxPopularity) ? 1.0f : ((float) p - mMinPopularity) / ((float) mMaxPopularity
-            - mMinPopularity);
+    private fun getPercentage(tag: Tag): Float {
+        val p = tag.popularity
+        return if (mMinPopularity == mMaxPopularity) 1.0f else (p.toFloat() - mMinPopularity) / (mMaxPopularity.toFloat() - mMinPopularity)
     }
 
-    public void add(Tag newTag) {
-        initTag(newTag);
-
-        position(newTag);
-        mTagList.add(newTag);
-        updateAll();
+    fun add(newTag: Tag) {
+        initTag(newTag)
+        position(newTag)
+        tagList.add(newTag)
+        updateAll()
     }
 
-    private void position(Tag newTag) {
-        double phi = Math.random() * (Math.PI);
-        double theta = Math.random() * (2 * Math.PI);
-
-        newTag.setSpatialX((int) (mRadius * Math.cos(theta) * Math.sin(phi)));
-        newTag.setSpatialY((int) (mRadius * Math.sin(theta) * Math.sin(phi)));
-        newTag.setSpatialZ((int) (mRadius * Math.cos(phi)));
+    private fun position(newTag: Tag) {
+        val phi = random() * PI
+        val theta = random() * (2 * PI)
+        newTag.spatialX = (radius * cos(theta) * sin(phi)).toFloat()
+        newTag.spatialY = (radius * sin(theta) * sin(phi)).toFloat()
+        newTag.spatialZ = (radius * cos(phi)).toFloat()
     }
 
-    private void positionAll(boolean rebuild) {
-        double phi = 0;
-        double theta = 0;
-        int max = mTagList.size();
-        //distribute: (disrtEven is used to specify whether distribute random or even
-        for (int i = 1; i < max + 1; i++) {
+    private fun positionAll(rebuild: Boolean) {
+        var phi = 0.0
+        var theta = 0.0
+        val max = tagList.size //distribute: (disrtEven is used to specify whether distribute random or even
+        for (i in 1 until max + 1) {
             if (rebuild) {
-                phi = Math.acos(-1.0 + (2.0 * i - 1.0) / max);
-                theta = Math.sqrt(max * Math.PI) * phi;
+                phi = acos(-1.0 + (2.0 * i - 1.0) / max)
+                theta = sqrt(max * PI) * phi
             } else {
-                phi = Math.random() * (Math.PI);
-                theta = Math.random() * (2 * Math.PI);
+                phi = random() * PI
+                theta = random() * (2 * PI)
             }
 
             //coordinate conversion:
-            mTagList.get(i - 1).setSpatialX((int) ((mRadius * Math.cos(theta) * Math.sin(phi))
-            ));
-            mTagList.get(i - 1).setSpatialY((int) (mRadius * Math.sin(theta) * Math.sin(phi)));
-            mTagList.get(i - 1).setSpatialZ((int) (mRadius * Math.cos(phi)));
+            tagList[i - 1].spatialX = (radius * cos(theta) * sin(phi)).toFloat()
+            tagList[i - 1].spatialY = (radius * sin(theta) * sin(phi)).toFloat()
+            tagList[i - 1].spatialZ = (radius * cos(phi)).toFloat()
         }
     }
 
-    private float maxDelta, minDelta;
-
-    private void updateAll() {
-
+    private fun updateAll() {
         //update transparency/scale for all tags:
-        for (int j = 0; j < mTagList.size(); j++) {
-            Tag tag = mTagList.get(j);
-            float x = tag.getSpatialX();
-            float y = tag.getSpatialY();
-            float z = tag.getSpatialZ();
+        for (j in tagList.indices) {
+            val tag = tagList[j]
+            val x = tag.spatialX
+            val y = tag.spatialY
+            val z = tag.spatialZ
 
             //There exists two options for this part:
             // multiply positions by a x-rotation matrix
-            float rx1 = x;
-            float ry1 = y * mCosX + z * -mSinX;
-            float rz1 = y * mSinX + z * mCosX;
-            // multiply new positions by a y-rotation matrix
-            float rx2 = rx1 * mCosY + rz1 * mSinY;
-            float ry2 = ry1;
-            float rz2 = rx1 * -mSinY + rz1 * mCosY;
-            // multiply new positions by a z-rotation matrix
-            float rx3 = rx2 * mCosZ + ry2 * -mSinZ;
-            float ry3 = rx2 * mSinZ + ry2 * mCosZ;
-            float rz3 = rz2;
-            // set arrays to new positions
-            tag.setSpatialX(rx3);
-            tag.setSpatialY(ry3);
-            tag.setSpatialZ(rz3);
+            val ry1 = y * mCosX + z * -mSinX
+            val rz1 = y * mSinX + z * mCosX // multiply new positions by a y-rotation matrix
+            val rx2 = x * mCosY + rz1 * mSinY
+            val rz2 = x * -mSinY + rz1 * mCosY // multiply new positions by a z-rotation matrix
+            val rx3 = rx2 * mCosZ + ry1 * -mSinZ
+            val ry3 = rx2 * mSinZ + ry1 * mCosZ // set arrays to new positions
+            tag.spatialX = rx3
+            tag.spatialY = ry3
+            tag.spatialZ = rz2
 
             // add perspective
-            int diameter = 2 * mRadius;
-            float per = diameter / 1.0f / (diameter + rz3);
-            // let's set position, scale, alpha for the tag;
-            tag.setFlatX((int) (rx3 * per));
-            tag.setFlatY((int) (ry3 * per));
-            tag.setScale(per);
+            val diameter = 2 * radius
+            val per = diameter / 1.0f / (diameter + rz2) // let's set position, scale, alpha for the tag;
+            tag.flatX = rx3 * per
+            tag.flatY = ry3 * per
+            tag.scale = per
 
             // calculate alpha value
-            float delta = diameter + rz3;
-            maxDelta = Math.max(maxDelta, delta);
-            minDelta = Math.min(minDelta, delta);
-            float alpha = (delta - minDelta) / (maxDelta - minDelta);
-            tag.setAlpha(1 - alpha);
+            val delta = diameter + rz2
+            maxDelta = max(maxDelta, delta)
+            minDelta = min(minDelta, delta)
+            val alpha = (delta - minDelta) / (maxDelta - minDelta)
+            tag.alpha = 1 - alpha
         }
-        sortTagByScale();
+        sortTagByScale()
     }
 
-    private float[] getColorFromGradient(float percentage) {
-        float[] rgba = new float[4];
-        rgba[0] = 1f;
-        rgba[1] = (percentage * (mDarkColor[0])) + ((1f - percentage) * (mLightColor[0]));
-        rgba[2] = (percentage * (mDarkColor[1])) + ((1f - percentage) * (mLightColor[1]));
-        rgba[3] = (percentage * (mDarkColor[2])) + ((1f - percentage) * (mLightColor[2]));
-        return rgba;
+    private fun getColorFromGradient(percentage: Float): FloatArray {
+        val rgba = FloatArray(4)
+        rgba[0] = 1f
+        rgba[1] = percentage * tagColorDark[0] + (1f - percentage) * tagColorLight[0]
+        rgba[2] = percentage * tagColorDark[1] + (1f - percentage) * tagColorLight[1]
+        rgba[3] = percentage * tagColorDark[2] + (1f - percentage) * tagColorLight[2]
+        return rgba
     }
 
-    private void recalculateAngle() {
-        double degToRad = (Math.PI / 180);
-        mSinX = (float) Math.sin(mInertiaX * degToRad);
-        mCosX = (float) Math.cos(mInertiaX * degToRad);
-        mSinY = (float) Math.sin(mInertiaY * degToRad);
-        mCosY = (float) Math.cos(mInertiaY * degToRad);
-        mSinZ = (float) Math.sin(mInertiaZ * degToRad);
-        mCosZ = (float) Math.cos(mInertiaZ * degToRad);
+    private fun recalculateAngle() {
+        val degToRad = PI / 180
+        mSinX = sin(mInertiaX * degToRad).toFloat()
+        mCosX = cos(mInertiaX * degToRad).toFloat()
+        mSinY = sin(mInertiaY * degToRad).toFloat()
+        mCosY = cos(mInertiaY * degToRad).toFloat()
+        mSinZ = sin(mInertiaZ * degToRad).toFloat()
+        mCosZ = cos(mInertiaZ * degToRad).toFloat()
     }
 
-    public void setRadius(int radius) {
-        this.mRadius = radius;
+    fun setInertia(x: Float, y: Float) {
+        mInertiaX = x
+        mInertiaY = y
     }
 
-    public void setTagColorLight(float[] tagColor) {
-        this.mLightColor = tagColor;
+    fun sortTagByScale() {
+        tagList.sort()
     }
 
-    public void setTagColorDark(float[] tagColorDark) {
-        this.mDarkColor = tagColorDark;
-    }
-
-    public void setInertia(float x, float y) {
-        this.mInertiaX = x;
-        this.mInertiaY = y;
-    }
-
-    public void sortTagByScale() {
-        Collections.sort(mTagList);
-    }
-
-    private void calculatePopularity() {
-        for (int i = 0; i < mTagList.size(); i++) {
-            Tag tag = mTagList.get(i);
-            int popularity = tag.getPopularity();
-            mMaxPopularity = Math.max(mMaxPopularity, popularity);
-            mMinPopularity = Math.min(mMinPopularity, popularity);
+    private fun calculatePopularity() {
+        for (i in tagList.indices) {
+            val tag = tagList[i]
+            val popularity = tag.popularity
+            mMaxPopularity = max(mMaxPopularity, popularity)
+            mMinPopularity = min(mMinPopularity, popularity)
         }
-
-        for (Tag tag : mTagList) {
-            initTag(tag);
+        for (tag in tagList) {
+            initTag(tag)
         }
+    }
+
+    companion object {
+        private const val DEFAULT_RADIUS = 3
+        private val DEFAULT_COLOR_DARK = floatArrayOf(0.886f, 0.725f, 0.188f, 1f)
+        private val DEFAULT_COLOR_LIGHT = floatArrayOf(0.3f, 0.3f, 0.3f, 1f)
     }
 }

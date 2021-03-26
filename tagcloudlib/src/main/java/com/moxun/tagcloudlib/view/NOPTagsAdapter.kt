@@ -1,36 +1,27 @@
-package com.moxun.tagcloudlib.view;
+package com.moxun.tagcloudlib.view
 
-import android.content.Context;
-import android.view.View;
-import android.view.ViewGroup;
+import android.content.Context
+import android.view.View
+import android.view.ViewGroup
 
 /**
  * Default adapter and do nothing
  * Created by moxun on 16/3/25.
- */
-/*package*/ class NOPTagsAdapter extends TagsAdapter {
-    @Override
-    public int getCount() {
-        return 0;
+ *//*package*/
+internal class NOPTagsAdapter : TagsAdapter() {
+    override val count: Int = 0
+
+    override fun getView(context: Context, position: Int, parent: ViewGroup): View? {
+        return null
     }
 
-    @Override
-    public View getView(Context context, int position, ViewGroup parent) {
-        return null;
+    override fun getItem(position: Int): Any? {
+        return null
     }
 
-    @Override
-    public Object getItem(int position) {
-        return null;
+    override fun getPopularity(position: Int): Int {
+        return 0
     }
 
-    @Override
-    public int getPopularity(int position) {
-        return 0;
-    }
-
-    @Override
-    public void onThemeColorChanged(View view, int themeColor, float alpha) {
-
-    }
+    override fun onThemeColorChanged(view: View, themeColor: Int, alpha: Float) {}
 }

@@ -1,50 +1,41 @@
-package com.moxun.tagcloud;
+package com.moxun.tagcloud
 
-
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import androidx.fragment.app.Fragment;
-
-import com.moxun.tagcloudlib.view.TagCloudView;
-
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import com.moxun.tagcloudlib.view.TagCloudView
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link TestFragment#newInstance} factory method to
+ * A simple [Fragment] subclass.
+ * Use the [TestFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-public class TestFragment extends Fragment {
-    private View rootView;
-    private TagCloudView fragmentTagcloud;
-
-    public TestFragment() {
-        // Required empty public constructor
+class TestFragment : Fragment() {
+    private var rootView: View? = null
+    private var fragmentTagcloud: TagCloudView? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
     }
 
-    public static TestFragment newInstance() {
-        TestFragment fragment = new TestFragment();
-        return fragment;
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View? {
+        rootView = inflater.inflate(R.layout.fragment_test, container, false)
+        instantiationViews()
+        val adapter = TextTagsAdapter(*arrayOfNulls(20))
+        fragmentTagcloud!!.setAdapter(adapter)
+        return rootView
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    private fun instantiationViews() {
+        fragmentTagcloud = rootView!!.findViewById<View>(R.id.fragment_tagcloud) as TagCloudView
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_test, container, false);
-        instantiationViews();
-        TextTagsAdapter adapter = new TextTagsAdapter(new String[20]);
-        fragmentTagcloud.setAdapter(adapter);
-        return rootView;
-    }
-
-    private void instantiationViews() {
-        fragmentTagcloud = (TagCloudView) rootView.findViewById(R.id.fragment_tagcloud);
+    companion object {
+        fun newInstance(): TestFragment {
+            return TestFragment()
+        }
     }
 }

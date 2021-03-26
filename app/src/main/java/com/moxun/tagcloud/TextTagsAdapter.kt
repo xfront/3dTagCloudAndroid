@@ -1,67 +1,46 @@
-package com.moxun.tagcloud;
+package com.moxun.tagcloud
 
-import android.content.Context;
-import android.graphics.Color;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-
-import com.moxun.tagcloudlib.view.TagsAdapter;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import android.content.Context
+import android.graphics.Color
+import android.util.Log
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import android.widget.Toast
+import com.moxun.tagcloudlib.view.TagsAdapter
 
 /**
  * Created by moxun on 16/1/19.
  */
-public class TextTagsAdapter extends TagsAdapter {
+class TextTagsAdapter(vararg data: String?) : TagsAdapter() {
+    private val dataSet = data.toList()
 
-    private List<String> dataSet = new ArrayList<>();
+    override val count = dataSet.size
 
-    public TextTagsAdapter(@NonNull String... data) {
-        dataSet.clear();
-        Collections.addAll(dataSet, data);
+    override fun getView(context: Context, position: Int, parent: ViewGroup): View? {
+        val tv = TextView(context)
+        tv.text = "No.$position"
+        tv.gravity = Gravity.CENTER
+        tv.setOnClickListener {
+            Log.e("Click", "Tag $position clicked.")
+            Toast.makeText(context, "Tag $position clicked", Toast.LENGTH_SHORT)
+                    .show()
+        }
+        tv.setTextColor(Color.WHITE)
+        return tv
     }
 
-    @Override
-    public int getCount() {
-        return dataSet.size();
+    override fun getItem(position: Int): Any? {
+        return dataSet[position]
     }
 
-    @Override
-    public View getView(final Context context, final int position, ViewGroup parent) {
-        TextView tv = new TextView(context);
-        tv.setText("No." + position);
-        tv.setGravity(Gravity.CENTER);
-        tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.e("Click", "Tag " + position + " clicked.");
-                Toast.makeText(context, "Tag " + position + " clicked", Toast.LENGTH_SHORT).show();
-            }
-        });
-        tv.setTextColor(Color.WHITE);
-        return tv;
+    override fun getPopularity(position: Int): Int {
+        return position % 7
     }
 
-    @Override
-    public Object getItem(int position) {
-        return dataSet.get(position);
+    override fun onThemeColorChanged(view: View, themeColor: Int, alpha: Float) {
+        view.setBackgroundColor(themeColor)
     }
 
-    @Override
-    public int getPopularity(int position) {
-        return position % 7;
-    }
-
-    @Override
-    public void onThemeColorChanged(View view, int themeColor, float alpha) {
-        view.setBackgroundColor(themeColor);
-    }
 }

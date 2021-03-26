@@ -1,12 +1,9 @@
-package com.moxun.tagcloudlib.view;
+package com.moxun.tagcloudlib.view
 
-import android.graphics.Color;
-import android.graphics.PointF;
-import android.view.View;
-
-import androidx.annotation.NonNull;
-
-import com.moxun.tagcloudlib.view.graphics.Point3DF;
+import android.graphics.Color
+import android.graphics.PointF
+import android.view.View
+import com.moxun.tagcloudlib.view.graphics.Point3DF
 
 /**
  * Copyright © 2016 moxun
@@ -29,130 +26,73 @@ import com.moxun.tagcloudlib.view.graphics.Point3DF;
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
+class Tag @JvmOverloads constructor(
+    x: Float = 0f, y: Float = 0f, z: Float = 0f, var scale: Float = 1.0f, val popularity: Int = DEFAULT_POPULARITY
+) : Comparable<Tag> {
+    private val mColor: FloatArray = floatArrayOf(1.0f, 0.5f, 0.5f, 0.5f)
+    var view: View? = null
+        private set
+    private val mFlatCenter: PointF = PointF(0f, 0f)
+    private val mSpatialCenter: Point3DF = Point3DF(x, y, z)
 
-public class Tag implements Comparable<Tag>{
+    constructor(popularity: Int) : this(0f, 0f, 0f, 1.0f, popularity) {}
 
-    private int mPopularity;
-    private float mScale;
-    private float[] mColor;
-    private View mView;
-    private PointF mFlatCenter;
-    private Point3DF mSpatialCenter;
-
-    private static final int DEFAULT_POPULARITY = 5;
-
-
-
-    public Tag() {
-        this(0f, 0f, 0f, 1.0f, 0);
-    }
-
-    public Tag(int popularity) {
-        this(0f, 0f, 0f, 1.0f, popularity);
-    }
-
-    public Tag(float x, float y, float z) {
-        this(x, y, z, 1.0f, DEFAULT_POPULARITY);
-    }
-
-    public Tag(float x, float y, float z, float scale) {
-        this(x, y, z, scale, DEFAULT_POPULARITY);
-    }
-
-    public Tag(float x, float y, float z, float scale, int popularity) {
-        this.mSpatialCenter = new Point3DF(x, y, z);
-        this.mFlatCenter = new PointF(0f, 0f);
-
-        this.mColor = new float[]{1.0f, 0.5f, 0.5f, 0.5f};
-
-        this.mScale = scale;
-        this.mPopularity = popularity;
-    }
-
-    public float getSpatialX() {
-        return mSpatialCenter.x;
-    }
-
-    public void setSpatialX(float x) {
-        this.mSpatialCenter.x = x;
-    }
-
-    public float getSpatialY() {
-        return mSpatialCenter.y;
-    }
-
-    public void setSpatialY(float y) {
-        this.mSpatialCenter.y = y;
-    }
-
-    public float getSpatialZ() {
-        return mSpatialCenter.z;
-    }
-
-    public void setSpatialZ(float z) {
-        this.mSpatialCenter.z = z;
-    }
-
-    public float getScale() {
-        return mScale;
-    }
-
-    public void setScale(float scale) {
-        this.mScale = scale;
-    }
-
-    public View getView() {
-        return mView;
-    }
-
-    public void bindingView(View view) {
-        this.mView = view;
-    }
-
-    public void setAlpha(float alpha) {
-        this.mColor[0] = alpha;
-    }
-
-    public int getPopularity() {
-        return mPopularity;
-    }
-
-    public float getFlatX() {
-        return mFlatCenter.x;
-    }
-
-    public void setFlatX(float x) {
-        this.mFlatCenter.x = x;
-    }
-
-    public float getFlatY() {
-        return mFlatCenter.y;
-    }
-
-    public void setFlatY(float y) {
-        this.mFlatCenter.y = y;
-    }
-
-    public void setColorComponent(float[] rgb) {
-        if (rgb != null) {
-            System.arraycopy(rgb, 0, this.mColor, this.mColor.length - rgb.length, rgb.length);
+    var spatialX: Float
+        get() = mSpatialCenter.x
+        set(x) {
+            mSpatialCenter.x = x
         }
-    }
-
-    public float getAlpha() {
-        return mColor[0];
-    }
-
-    public int getColor() {
-        int[] result = new int[4];
-        for (int i = 0; i < 4; i++) {
-            result[i] = (int) (this.mColor[i] * 0xff);
+    var spatialY: Float
+        get() = mSpatialCenter.y
+        set(y) {
+            mSpatialCenter.y = y
         }
-        return Color.argb(result[0], result[1], result[2], result[3]);
+    var spatialZ: Float
+        get() = mSpatialCenter.z
+        set(z) {
+            mSpatialCenter.z = z
+        }
+
+    fun bindingView(view: View?) {
+        this.view = view
     }
 
-    @Override
-    public int compareTo(@NonNull Tag another) {
-        return this.getScale() > another.getScale() ? 1 : -1;
+    var flatX: Float
+        get() = mFlatCenter.x
+        set(x) {
+            mFlatCenter.x = x
+        }
+
+    var flatY: Float
+        get() = mFlatCenter.y
+        set(y) {
+            mFlatCenter.y = y
+        }
+
+    fun setColorComponent(rgb: FloatArray) {
+        System.arraycopy(rgb, 0, mColor, mColor.size - rgb.size, rgb.size)
+    }
+
+    var alpha: Float
+        get() = mColor[0]
+        set(alpha) {
+            mColor[0] = alpha
+        }
+
+    val color: Int
+        get() {
+            val result = IntArray(4)
+            for (i in 0..3) {
+                result[i] = (mColor[i] * 0xff).toInt()
+            }
+            return Color.argb(result[0], result[1], result[2], result[3])
+        }
+
+    override fun compareTo(another: Tag): Int {
+        return if (scale > another.scale) 1 else -1
+    }
+
+    companion object {
+        private const val DEFAULT_POPULARITY = 5
     }
 }

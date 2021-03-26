@@ -11,6 +11,6 @@
         app:autoScrollMode="uniform"
         app:darkColor="#FF0000"
         app:lightColor="#00FF00"
-        app:radiusPercent="0.6"/>
+        app:radiusPercent="0.6" />
 
 </FrameLayout>
